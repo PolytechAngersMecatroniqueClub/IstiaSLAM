@@ -26,7 +26,7 @@ include_directories(
     )
 
 ## Declare a C++ executable
-add_executable(istia_slam_node istia_slam_node.cpp
+add_executable(istia_slam_test_node istia_slam_test_node.cpp
     src/IstiaSlam_Costmap.cpp
     src/IstiaSlam_Map.cpp
     src/IstiaSlam.cpp
@@ -41,9 +41,10 @@ add_executable(istia_slam_cerema_node istia_slam_cerema_node.cpp
 
 ## Specify libraries to link a library or executable target against
 ###          !!! IMPORTANT !!!
-target_link_libraries(istia_slam_node
+target_link_libraries(istia_slam_test_node
     ${catkin_LIBRARIES}
     )
+
 target_link_libraries(istia_slam_cerema_node
     ${catkin_LIBRARIES}
     )
