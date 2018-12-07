@@ -2,10 +2,8 @@
 #include <ros/param.h>
 #include <sensor_msgs/LaserScan.h>
 #include <geometry_msgs/Pose2D.h>
-#include <geometry_msgs/PoseStamped.h>
-#include <geometry_msgs/Quaternion.h>
 #include <sensor_msgs/PointCloud.h>
-#include <nav_msgs/Path.h>
+
 
 // this is for the non blocking input
 #include <signal.h>
@@ -15,19 +13,16 @@
 #include "src/IstiaSlam.h"
 
 unsigned int id_scan = 0;
-unsigned int step_scan = 1;
+unsigned int step_scan = 5;
 
 double rotation_step = 0.01;
 double translation_step = 0.01;
-
-double limit_score = 3000;
 
 std::vector<sensor_msgs::LaserScan> scan_vector(0);
 sensor_msgs::PointCloud cloud;
 IstiaSlam* istiaslam;
 geometry_msgs::Pose2D pose;
 geometry_msgs::Pose2D old_pose;
-nav_msgs::Path path;
 
 // this is for the non blocking input
 void RestoreKeyboardBlocking(struct termios *initial_settings){
@@ -52,7 +47,7 @@ void SetKeyboardNonBlock(struct termios *initial_settings){
 
 void addLidarScan(const sensor_msgs::LaserScan::ConstPtr& msg){
     scan_vector.push_back(*msg);
-    ROS_INFO("new scan added, current length %d", scan_vector.size());
+    //ROS_INFO("new scan added, current length %d", scan_vector.size());
 }
 
 
@@ -92,6 +87,7 @@ void updateMaps(){
         return;
     }
     istiaslam->add_2_map(scan_vector[id_scan], pose);
+    istiaslam->publish_probability_map();
 }
 
 int updatePose(ros::Publisher& pub){
@@ -115,7 +111,7 @@ int updatePose(ros::Publisher& pub){
             }
         }
         watch_dog++;
-    }while(istiaslam->get_cost(scan_vector[id_scan], pose) > limit_score && watch_dog < 50);
+    }while(istiaslam->get_cost(scan_vector[id_scan], pose) > 7000 && watch_dog < 50);
     ROS_INFO("cost: %2.2f", istiaslam->get_cost(scan_vector[id_scan], pose));
     update_cloud(pub);
     if(watch_dog==50){
@@ -125,36 +121,6 @@ int updatePose(ros::Publisher& pub){
     }
 }
 
-geometry_msgs::Quaternion toQuaternion(double pitch, double roll, double yaw)
-{
-    geometry_msgs::Quaternion q;
-    double t0 = std::cos(yaw * 0.5);
-    double t1 = std::sin(yaw * 0.5);
-    double t2 = std::cos(roll * 0.5);
-    double t3 = std::sin(roll * 0.5);
-    double t4 = std::cos(pitch * 0.5);
-    double t5 = std::sin(pitch * 0.5);
-
-    q.w = t0 * t2 * t4 + t1 * t3 * t5;
-    q.x=(t0 * t3 * t4 - t1 * t2 * t5);
-    q.y=(t0 * t2 * t5 + t1 * t3 * t4);
-    q.z=(t1 * t2 * t4 - t0 * t3 * t5);
-    return q;
-}
-
-void updatepath(ros::Publisher& pub){
-    path.header.frame_id = "map_link";
-
-    geometry_msgs::PoseStamped pose_stamped;
-    pose_stamped.header.stamp = ros::Time::now();
-    pose_stamped.header.frame_id = "map_link";
-    pose_stamped.pose.position.x = pose.x;
-    pose_stamped.pose.position.y = pose.y;
-    pose_stamped.pose.orientation = toQuaternion(0.0f,0.0f,pose.theta);
-
-    path.poses.push_back(pose_stamped);
-    pub.publish(path);
-}
 
 
 //      ____________
@@ -162,13 +128,12 @@ void updatepath(ros::Publisher& pub){
 int main(int argc, char **argv)
 {
   // Set up ROS.
-    ros::init(argc, argv, "istia_slam_test_node",1);
+    ros::init(argc, argv, "istia_slam__cerema_node",1);
     ros::NodeHandle node;
 
 
     ros::Subscriber sub_lidar = node.subscribe("/scan", 1000, addLidarScan);
     ros::Publisher cloud_pub = node.advertise<sensor_msgs::PointCloud>("/pointcloud_msg", 1000);
-    ros::Publisher path_pub = node.advertise<nav_msgs::Path>("/path_msg", 1000);
 
     //  Build SLAM object :
     istiaslam = new IstiaSlam();
@@ -237,39 +202,7 @@ int main(int argc, char **argv)
                     id_scan += step_scan;
                     if(updatePose(cloud_pub)==1){
                         updateMaps();
-                        updatepath(path_pub);
-                        istiaslam->publish_probability_map();
                     }else ROS_INFO("Failed to update the pose");
-                    break;
-                case 's':
-                    if(scan_vector.size()>0){
-                        // initialisation
-                        updateMaps();
-                        int watch_dog = 0;
-                        while((id_scan + step_scan) < scan_vector.size() && watch_dog < 5000){   
-                            id_scan += step_scan;
-                            if(updatePose(cloud_pub)==1){
-                                updateMaps();
-                                updatepath(path_pub);
-                            }else{
-                                ROS_INFO("Failed to update the pose");
-                                break;
-                            }
-                            if(watch_dog%50==0){
-                                istiaslam->publish_probability_map();
-                            }
-                            watch_dog++;
-                        }
-                    }
-                    break;
-                case 'a':
-                    istiaslam->publish_probability_map();
-                    break;
-                case 'z':
-                    istiaslam->publish_cost_map();
-                    break;
-                case 'e':
-                    path_pub.publish(path);
                     break;
                 default:
                     //send_smth = false;

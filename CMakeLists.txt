@@ -5,7 +5,7 @@ project(istiaslam)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-    roscpp rospy geometry_msgs sensor_msgs nav_msgs
+    roscpp rospy geometry_msgs sensor_msgs nav_msgs tf
     )
 
 find_package(Eigen3 REQUIRED)
@@ -38,6 +38,13 @@ add_executable(istia_slam_cerema_node istia_slam_cerema_node.cpp
     src/IstiaSlam.cpp
     )
 
+## Declare a C++ executable
+add_executable(istia_slam_real_time_node istia_slam_real_time_node.cpp
+    src/IstiaSlam_Costmap.cpp
+    src/IstiaSlam_Map.cpp
+    src/IstiaSlam.cpp
+    )
+
 
 ## Specify libraries to link a library or executable target against
 ###          !!! IMPORTANT !!!
@@ -46,6 +53,10 @@ target_link_libraries(istia_slam_test_node
     )
 
 target_link_libraries(istia_slam_cerema_node
+    ${catkin_LIBRARIES}
+    )
+
+target_link_libraries(istia_slam_real_time_node
     ${catkin_LIBRARIES}
     )
 

@@ -3,9 +3,10 @@
 #include <stdlib.h>     // srand, rand
 #include <time.h>       // time
 
-const int cst_height = 10000;       // nb cells
-const int cst_width = 10000;        // nb cells
-const float cst_resolution = 0.01;  // m/cells
+const int cst_height = 100000;       // nb cells
+const int cst_width = 100000;        // nb cells
+const float cst_resolution = 0.001;  // m/cells
+const int cst_nbite = 10;
 
 IstiaSlam::IstiaSlam(){
     // initialization of the publishers
@@ -242,7 +243,7 @@ geometry_msgs::Pose2D IstiaSlam::nelder_mead(const sensor_msgs::LaserScan &scan,
                 loop = true;
             }
         }
-        if(nb_ite > 20){
+        if(nb_ite > cst_nbite){
             loop = false;
         }
     }
