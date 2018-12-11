@@ -27,16 +27,16 @@ void IstiaSlam::add_2_map(const sensor_msgs::LaserScan &scan, const geometry_msg
     unsigned int i, size = scan.ranges.size();
     double angle = scan.angle_min;
     double obs_x, obs_y;
+    std::vector<float>::const_iterator it_msr; //using an iterator for faster loops
     // loop over the measurements
-    for(i = 0; i < size; i++){
-        if(scan.ranges[i] == 0 || scan.ranges[i] >= INFINITY ||
-           scan.ranges[i] < 0.2f || scan.ranges[i] >= 100.0f){
+    for(it_msr=scan.ranges.begin(); it_msr!=scan.ranges.end(); ++it_msr){
+        if(*it_msr == 0 || *it_msr >= INFINITY || *it_msr < 0.2f || *it_msr >= 100.0f){
             // I do not know why sometimes we go here... maybe it is because of bad scans...
         }
         else{
             // convert the scan into x y coordinates (according to the pose)
-            obs_x = scan.ranges[i] * cos(angle + pose.theta) + pose.x;
-            obs_y = scan.ranges[i] * sin(angle + pose.theta) + pose.y;
+            obs_x = (*it_msr) * cos(angle + pose.theta) + pose.x;
+            obs_y = (*it_msr) * sin(angle + pose.theta) + pose.y;
 
             // add the detected obstacle to the map
             // the pose coordinates are also needed to "free" the line between the pose and the obstacle
@@ -72,22 +72,22 @@ void IstiaSlam::publish_cost_map(){
 
 // function to compute the cost of a lidar scan according to a pose (based on the costmap)
 double IstiaSlam::get_cost(const sensor_msgs::LaserScan &scan, const geometry_msgs::Pose2D& pose){
-    unsigned int i, size = scan.ranges.size();
+
     double angle = scan.angle_min;
     double cost = 0; // variable that will store the cost of the scan, initialized to 0
 
     double wx, wy; // the world coordinates
     int cx, cy; // the cells indexes
 
-    for(i = 0; i < size; i++){ // for all the measurements in the scan
-        if(scan.ranges[i] == 0 || scan.ranges[i] >= INFINITY ||
-           scan.ranges[i] < 0.2f || scan.ranges[i] >= 100.0f){
+    std::vector<float>::const_iterator it_msr; //using an iterator for faster loops
+    for(it_msr=scan.ranges.begin(); it_msr!=scan.ranges.end(); ++it_msr){ // for all the measurements in the scan
+        if(*it_msr == 0 || *it_msr >= INFINITY || *it_msr < 0.2f || *it_msr >= 100.0f){
             // I do not know why sometimes we go here... maybe it is because of bad scans...
         }
         else{
             // convert the scan measurement into a world x y coordinates according to the pose
-            wx = scan.ranges[i] * cos(angle + pose.theta) + pose.x;
-            wy = scan.ranges[i] * sin(angle + pose.theta) + pose.y;
+            wx = (*it_msr) * cos(angle + pose.theta) + pose.x;
+            wy = (*it_msr) * sin(angle + pose.theta) + pose.y;
 
             // convert the world coordinates into cells indexes in the map
             cx = _map.get_x_cell_from_world(wx);
