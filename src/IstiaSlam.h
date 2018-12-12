@@ -6,6 +6,8 @@
 #include <sensor_msgs/LaserScan.h>
 #include <sensor_msgs/PointCloud.h>
 
+#include <string.h>
+
 #include "IstiaSlam_Map.h"
 
 class IstiaSlam{
@@ -21,6 +23,9 @@ public:
     void publish_probability_map();
     // to concert the costmap into a grid map and publish it (debugging purpose)
     void publish_cost_map();
+
+    // to publish the probability map
+    void probability_map_to_csv(const std::string& file_name, const std::string& delimiter);
 
     // evaluate the cost of a laser scan according to the pose pose_init (the cost is based on the cost map)
     double get_cost(const sensor_msgs::LaserScan &scan, const geometry_msgs::Pose2D& pose_init);

@@ -3,10 +3,10 @@
 
 // those constants should be given by the ros parameter server
 // this is something to do
-const int cst_height = 10000;          // nb cells
-const int cst_width = 10000;           // nb cells
-const float cst_resolution = 0.015;    // m/cells
-const int cst_cost_stamp_radius = 100; // nb cells
+const float cst_resolution = 0.02;     // m/cells
+const int cst_height = (int)(15/cst_resolution);           // nb cells
+const int cst_width = (int)(15/cst_resolution);            // nb cells
+const int cst_cost_stamp_radius = 50; // nb cells
 const int cst_max_belief = 100;        // max value in the probability map
 const int cst_min_belief = 0;          // min value in the probability map
 const int cst_add_belief = 25;         // the value we add when detected an obstacle in the probability map

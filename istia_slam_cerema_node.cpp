@@ -15,8 +15,8 @@
 #include <signal.h>
 #include <termios.h>
 #include <stdio.h>
-#include <fstream>
 
+#include <fstream>
 #include <string.h>
 
 #include "src/IstiaSlam.h"
@@ -147,7 +147,7 @@ int buildmap(){
     }
 
     // initialisation of the illuminance csv file to map the illimunance data
-    filename = "illuminance"+std::to_string(ros::Time::now().toSec())+".csv";
+    filename = "/home/remy/Documents/rosbags/outputs/illuminance_"+std::to_string(ros::Time::now().toSec())+".csv";
     ifile.open(filename, std::ofstream::out);
     ifile << "Illuminance map " << std::endl;
     ifile << "x (m)\ty (m)\tFull\tIR\ttime difference (ms)" << std::endl;
@@ -202,6 +202,9 @@ int buildmap(){
         }
         i++; // go to the next scan
     }
+    scan_vector.clear();
+    ill_full_vector.clear();
+    ill_ired_vector.clear();
     return 1; // map is built correctly
 }
 
@@ -262,6 +265,10 @@ int main(int argc, char **argv)
                     istiaslam->publish_probability_map();
                     ROS_INFO("Map published");
                     break;
+                case 'o':
+                    istiaslam->probability_map_to_csv("/home/remy/Documents/rosbags/outputs/probability_"+std::to_string(ros::Time::now().toSec())+".csv", "\t");
+                    ROS_INFO("Map saved to csv file");
+                    break;
                 case -1:
                     // no key has been pressed
                     break;
@@ -269,11 +276,9 @@ int main(int argc, char **argv)
                     // one not defined key has been pressed
                     if(conf_overrided){
                         ROS_WARN("The terminal configuration is overrided - press 'q' to get initial configuration");
-                    }else{
-                        ROS_WARN("The terminal configuration is the one by default - press 'q' to override into non blocking configuration");
                     }
-                    ROS_INFO("'q':change keyboard configuration, 's':build map, 'm':publish map, 'p':publish path ");
                     ROS_WARN("Key pressed (%d) not valid", c);
+                    ROS_INFO("available commands:\n'q': change keyboard configuration\n's': build map\n'm': publish map\n'p': publish path\n'o': save probability map to csv file");
             }
         }
         ros::spinOnce();

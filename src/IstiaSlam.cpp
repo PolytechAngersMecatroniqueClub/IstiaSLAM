@@ -2,6 +2,7 @@
 
 #include <stdlib.h>     // srand, rand
 #include <time.h>       // time
+#include <fstream>
 
 const int cst_height = 100000;       // nb cells
 const int cst_width = 100000;        // nb cells
@@ -248,5 +249,25 @@ geometry_msgs::Pose2D IstiaSlam::nelder_mead(const sensor_msgs::LaserScan &scan,
         }
     }
     return _points[0];
+}
+
+
+void IstiaSlam::probability_map_to_csv(const std::string& file_name, const std::string& delimiter){
+    std::ofstream ifile;  // the file
+
+    ifile.open(file_name, std::ofstream::out);
+    ifile << "Probability_map"     << delimiter << std::to_string(ros::Time::now().toSec())      << std::endl;
+    ifile << "height_x_(cells)"    << delimiter << std::to_string(_map._probmap.info.height)     << std::endl;
+    ifile << "width_y_(cells)"     << delimiter << std::to_string(_map._probmap.info.width)      << std::endl;
+    ifile << "cell_resolution_(m)" << delimiter << std::to_string(_map._probmap.info.resolution) << std::endl;
+
+    for (int x = 0; x<_map._probmap.info.height; x++){
+        for (int y = 0; y<_map._probmap.info.width; y++){
+            ifile <<  std::to_string(_map.prob_get_val_at(x, y)) << delimiter;
+        }
+        ifile << std::endl;
+    }
+
+    ifile.close();
 }
 
