@@ -56,4 +56,6 @@ public:
 
     // function to convert an y world coordinate into an y index in the map
     int get_y_cell_from_world(double y);
+
+    void init_maps(int height, int width, float resolution, int stamp_radius);
 };

@@ -6,7 +6,7 @@
 const float cst_resolution = 0.02;     // m/cells
 const int cst_height = (int)(15/cst_resolution);           // nb cells
 const int cst_width = (int)(15/cst_resolution);            // nb cells
-const int cst_cost_stamp_radius = 50; // nb cells
+const int cst_cost_stamp_radius = 25; // nb cells
 const int cst_max_belief = 100;        // max value in the probability map
 const int cst_min_belief = 0;          // min value in the probability map
 const int cst_add_belief = 25;         // the value we add when detected an obstacle in the probability map
@@ -26,6 +26,15 @@ IstiaSlam_Map::IstiaSlam_Map(): _costmap(cst_height, cst_width){
     _remBelief = cst_rem_belief;
     _thresholdBelief = cst_threshold_belief;
 
+    init_maps(_height, _width, cst_resolution, cst_cost_stamp_radius);
+}
+
+void IstiaSlam_Map::init_maps(int height, int width, float resolution, int stamp_radius){
+
+    _height = height;
+    _width = width;
+    _resolution = resolution;
+
     // probability map initialization
     _probmap.header.frame_id = "map_link";
     _probmap.info.height = _height;         // cells X
@@ -40,10 +49,10 @@ IstiaSlam_Map::IstiaSlam_Map(): _costmap(cst_height, cst_width){
     _probmap.data.resize(_height*_width);
     // the probability cells are initialized with the _thresholdbelief value 
     for(int i=0; i<_height*_width; i++){
-        _probmap.data[i] = _thresholdBelief;
+        _probmap.data[i] = _thresholdBelief-1;
     }
     // we initialize the stamp of the costmap
-    _costmap.init_stamp(cst_cost_stamp_radius);
+    _costmap.init_costmap(height, width, stamp_radius);
 }
 
 // function to get the value of a given cell cx, cy
@@ -79,7 +88,7 @@ void IstiaSlam_Map::prob_rem_val_at(int cx, int cy, int val){
         // we compute the index of the cell according the cell coordinates
         int id = cx+cy*_width;
         // if the obstacle disapeared (it goes under the threshold), we need to remove it from the costmap
-        if(_probmap.data[id] > _thresholdBelief && _probmap.data[id] - val < _thresholdBelief) cost_remove_obs(cx, cy);
+        if((_probmap.data[id] > _thresholdBelief) && ((_probmap.data[id] - val) < _thresholdBelief)) cost_remove_obs(cx, cy);
         // the cost is decreased over a min value
         if( _probmap.data[id] > val) _probmap.data[id] -= val;
         else _probmap.data[id] = 0;
@@ -119,6 +128,7 @@ void IstiaSlam_Map::obstacle_detected(double x_robot, double y_robot, double x_o
 // function to remove an obstacle from the cost map
 void IstiaSlam_Map::cost_remove_obs(int cx, int cy){
     // This needs to be done...
+    _costmap.rem_stamp(cx, cy); // check the istiaSlam_Costmap for details
 }
 
 // function to add an obstacle to the costmap

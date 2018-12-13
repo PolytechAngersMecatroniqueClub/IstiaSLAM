@@ -32,9 +32,13 @@ public:
     // to convert the cost map into a ros occupancygrid
     void toOccupancyGrid(nav_msgs::OccupancyGrid& grid);
     // add an ostacle to the cost map at the cell cx cy
-    void add_stamp(int cx, int cy);
+    void add_stamp(int cx, int cy);;
+    // remove an ostacle from the cost map at the cell cx cy
+    void rem_stamp(int cx, int cy);
     // return the cost of the cell cx cy
     double get_cost_at(int cx, int cy);
+
+    void init_costmap(int height, int width, int radius);
 
     std::vector<CostCell> _cells; // the vector that store the cells
     int _height;                  //nb cells X

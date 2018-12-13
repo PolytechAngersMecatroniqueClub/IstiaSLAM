@@ -4,10 +4,7 @@
 #include <time.h>       // time
 #include <fstream>
 
-const int cst_height = 100000;       // nb cells
-const int cst_width = 100000;        // nb cells
-const float cst_resolution = 0.001;  // m/cells
-const int cst_nbite = 10;
+const int cst_nb_ite = 10;
 
 IstiaSlam::IstiaSlam(){
     // initialization of the publishers
@@ -20,6 +17,8 @@ IstiaSlam::IstiaSlam(){
     _dimension = 3; // Dimensions N=3 (x, y, theta)
     _points = std::vector<geometry_msgs::Pose2D>(_dimension+1);
     _costs = std::vector<double>(_dimension+1);
+
+    _nb_ite_max = cst_nb_ite;
 }
 
 // function to add a scan to the maps according to the pose
@@ -244,7 +243,7 @@ geometry_msgs::Pose2D IstiaSlam::nelder_mead(const sensor_msgs::LaserScan &scan,
                 loop = true;
             }
         }
-        if(nb_ite > cst_nbite){
+        if(nb_ite > _nb_ite_max){
             loop = false;
         }
     }

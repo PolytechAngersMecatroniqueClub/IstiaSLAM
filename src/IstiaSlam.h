@@ -45,5 +45,6 @@ public:
     std::vector<geometry_msgs::Pose2D> _points; 
     std::vector<double> _costs;
     int _dimension;
+    int _nb_ite_max;
 
 };
