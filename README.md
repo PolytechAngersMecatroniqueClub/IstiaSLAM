@@ -1,3 +1,6 @@
+WARNING : OLD! pa_slam is the new SLAM vesion!!!
+
+
 # IstiaSLAM
 ROS Lidar only based 2D SLAM
 
